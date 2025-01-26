@@ -29,7 +29,7 @@ npx react-native link react-native-gesture-handler react-native-reanimated
 
 ```tsx
 import React from 'react';
-import JoystickCustom from 'react-native-joystick-lite';
+import Joystick from 'react-native-joystick-lite';
 
 const App = () => {
   const handleMove = (data) => {
@@ -37,7 +37,7 @@ const App = () => {
   };
 
   return (
-    <JoystickCustom
+    <Joystick
       onMove={handleMove}
       onEnd={() => console.log('Joystick released')}
       size={200}
