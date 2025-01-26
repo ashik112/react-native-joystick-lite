@@ -1,7 +1,7 @@
 {
   "name": "react-native-joystick-lite",
   "version": "0.1.0",
-  "description": "A library for Joystick control using gesture",
+  "description": "A customizable joystick component for React Native with gesture support.",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
@@ -22,7 +22,7 @@
     "lib",
     "android",
     "ios",
-    "cpp",
+    "example",
     "*.podspec",
     "react-native.config.js",
     "!ios/build",
@@ -43,12 +43,17 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli lib",
     "prepare": "bob build",
-    "release": "release-it"
+    "release": "release-it",
+    "build": "tsc --project tsconfig.build.json",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "react-native",
-    "ios",
-    "android"
+    "joystick",
+    "gesture",
+    "expo",
+    "android",
+    "ios"
   ],
   "repository": {
     "type": "git",
@@ -101,28 +106,6 @@
       "<rootDir>/lib/"
     ]
   },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
-  "release-it": {
-    "git": {
-      "commitMessage": "chore: release ${version}",
-      "tagName": "v${version}"
-    },
-    "npm": {
-      "publish": true
-    },
-    "github": {
-      "release": true
-    },
-    "plugins": {
-      "@release-it/conventional-changelog": {
-        "preset": "angular"
-      }
-    }
-  },
   "eslintConfig": {
     "root": true,
     "extends": [
@@ -143,10 +126,6 @@
       ]
     }
   },
-  "eslintIgnore": [
-    "node_modules/",
-    "lib/"
-  ],
   "prettier": {
     "quoteProps": "consistent",
     "singleQuote": true,
@@ -154,47 +133,8 @@
     "trailingComma": "es5",
     "useTabs": false
   },
-  "react-native-builder-bob": {
-    "source": "src",
-    "output": "lib",
-    "targets": [
-      "codegen",
-      [
-        "commonjs",
-        {
-          "esm": true
-        }
-      ],
-      [
-        "module",
-        {
-          "esm": true
-        }
-      ],
-      [
-        "typescript",
-        {
-          "project": "tsconfig.build.json",
-          "esm": true
-        }
-      ]
-    ]
-  },
-  "codegenConfig": {
-    "name": "RNJoystickLiteSpec",
-    "type": "modules",
-    "jsSrcsDir": "src",
-    "outputDir": {
-      "ios": "ios/generated",
-      "android": "android/generated"
-    },
-    "android": {
-      "javaPackageName": "com.joysticklite"
-    }
-  },
-  "create-react-native-library": {
-    "languages": "js",
-    "type": "library",
-    "version": "0.45.5"
+  "dependencies": {
+    "react-native-gesture-handler": "^2.22.1",
+    "react-native-reanimated": "^3.16.7"
   }
 }

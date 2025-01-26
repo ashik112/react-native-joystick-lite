@@ -1,20 +1,5 @@
-import { Text, View, StyleSheet } from 'react-native';
-import { multiply } from 'react-native-joystick-lite';
-
-const result = multiply(3, 7);
+import { Joystick } from 'react-native-joystick-lite';
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Result: {result}</Text>
-    </View>
-  );
+  return <Joystick size={200} color="#ff5733" />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
