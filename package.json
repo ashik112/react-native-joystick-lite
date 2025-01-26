@@ -22,7 +22,8 @@
     "lib",
     "README.md",
     "LICENSE",
-    "package.json"
+    "package.json",
+    "!**/__tests__"
   ],
   "scripts": {
     "example": "yarn workspace react-native-joystick-lite-example",
@@ -74,6 +75,8 @@
     "react": "18.3.1",
     "react-native": "0.76.6",
     "react-native-builder-bob": "^0.32.1",
+    "react-native-gesture-handler": "^2.22.1",
+    "react-native-reanimated": "^3.16.7",
     "release-it": "^17.10.0",
     "typescript": "^5.2.2"
   },
@@ -81,8 +84,10 @@
     "@types/react": "^18.2.44"
   },
   "peerDependencies": {
-    "react": "^18.0.0",
-    "react-native": "^0.70.0"
+    "react": "*",
+    "react-native": "*",
+    "react-native-gesture-handler": "^2.22.1",
+    "react-native-reanimated": "^3.16.7"
   },
   "workspaces": [
     "example"
@@ -121,10 +126,6 @@
     "tabWidth": 2,
     "trailingComma": "es5",
     "useTabs": false
-  },
-  "dependencies": {
-    "react-native-gesture-handler": "^2.22.1",
-    "react-native-reanimated": "^3.16.7"
   },
   "types": "./lib/typescript/commonjs/src/index.d.ts",
   "react-native-builder-bob": {

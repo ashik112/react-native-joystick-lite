@@ -15,7 +15,7 @@ A customizable joystick component for React Native with gesture support. Built u
 ### For Expo Projects:
 
 ```bash
-yarn add react-native-joystick-lite expo-haptics
+yarn add react-native-joystick-lite react-native-gesture-handler react-native-reanimated expo-haptics
 ```
 
 ### For React Native CLI Projects:

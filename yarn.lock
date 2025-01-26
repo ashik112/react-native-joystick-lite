@@ -11867,8 +11867,10 @@ __metadata:
     release-it: ^17.10.0
     typescript: ^5.2.2
   peerDependencies:
-    react: ^18.0.0
-    react-native: ^0.70.0
+    react: "*"
+    react-native: "*"
+    react-native-gesture-handler: ^2.22.1
+    react-native-reanimated: ^3.16.7
   languageName: unknown
   linkType: soft
 

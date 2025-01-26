@@ -1,9 +1,9 @@
 # Ignore node_modules and build artifacts
 node_modules/
+src/__tests__/*
 example/
 ios/
 android/
-lib/
 dist/
 coverage/
 test/
