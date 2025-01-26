@@ -20,21 +20,9 @@
   "files": [
     "src",
     "lib",
-    "android",
-    "ios",
-    "example",
-    "*.podspec",
-    "react-native.config.js",
-    "!ios/build",
-    "!android/build",
-    "!android/gradle",
-    "!android/gradlew",
-    "!android/gradlew.bat",
-    "!android/local.properties",
-    "!**/__tests__",
-    "!**/__fixtures__",
-    "!**/__mocks__",
-    "!**/.*"
+    "README.md",
+    "LICENSE",
+    "package.json"
   ],
   "scripts": {
     "example": "yarn workspace react-native-joystick-lite-example",

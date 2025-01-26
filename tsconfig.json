@@ -1,15 +1,20 @@
 {
   "compilerOptions": {
+    "outDir": "lib",
     "rootDir": ".",
     "paths": {
-      "react-native-joystick-lite": ["./src/index"]
+      "react-native-joystick-lite": [
+        "./src/index"
+      ]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
-    "lib": ["ESNext"],
+    "lib": [
+      "ESNext"
+    ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "noEmit": true,
@@ -26,5 +31,12 @@
     "strict": true,
     "target": "ESNext",
     "verbatimModuleSyntax": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "lib",
+    "test",
+    "docs"
+  ],
 }
