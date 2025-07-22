@@ -8,7 +8,6 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  runOnJS,
   withTiming,
 } from 'react-native-reanimated';
 
@@ -42,7 +41,6 @@ interface JoystickData {
 }
 
 const getDirection = (angleDeg: number): string => {
-  'worklet';
   if (
     (angleDeg >= 337.5 && angleDeg <= 360) ||
     (angleDeg >= 0 && angleDeg < 22.5)
@@ -104,14 +102,13 @@ export const Joystick: React.FC<JoystickProps> = React.memo(
     const panGesture = useMemo(
       () =>
         Gesture.Pan()
+          .runOnJS(true)
           .onBegin(() => {
-            'worklet';
             if (haptics && Haptics) {
-              runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Heavy);
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
             }
           })
           .onUpdate((event: { translationX: any; translationY: any }) => {
-            'worklet';
             const rawX = event.translationX;
             const rawY = event.translationY;
             const distance = Math.sqrt(rawX ** 2 + rawY ** 2);
@@ -136,7 +133,7 @@ export const Joystick: React.FC<JoystickProps> = React.memo(
             const normalizedX = (newX / BOUNDARY_RADIUS) * size;
             const normalizedY = -(newY / BOUNDARY_RADIUS) * size;
 
-            runOnJS(debouncedOnMove)({
+            debouncedOnMove({
               position: {
                 x: Math.max(-size, Math.min(size, normalizedX)),
                 y: Math.max(-size, Math.min(size, normalizedY)),
@@ -155,7 +152,7 @@ export const Joystick: React.FC<JoystickProps> = React.memo(
             translateX.value = withTiming(0, { duration: 300 });
             translateY.value = withTiming(0, { duration: 300 });
             if (onEnd) {
-              runOnJS(onEnd)();
+              onEnd();
             }
           }),
       [
