@@ -8,9 +8,9 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  runOnJS,
   withTiming,
 } from 'react-native-reanimated';
+import alpha from 'color-alpha';
 
 let Haptics: any = null;
 try {
@@ -42,7 +42,6 @@ interface JoystickData {
 }
 
 const getDirection = (angleDeg: number): string => {
-  'worklet';
   if (
     (angleDeg >= 337.5 && angleDeg <= 360) ||
     (angleDeg >= 0 && angleDeg < 22.5)
@@ -76,6 +75,16 @@ const debounce = (func: (...args: any[]) => void, delay: number) => {
   };
 };
 
+/**
+ * Applies alpha transparency to a color using the color-alpha library
+ * @param color - Color string (named color, hex, rgb, etc.)
+ * @param opacity - Alpha value between 0 and 1
+ * @returns RGBA color string
+ */
+const withAlpha = (color: string, opacity: number): string => {
+  return alpha(color, opacity);
+};
+
 export const Joystick: React.FC<JoystickProps> = React.memo(
   ({
     onMove = () => {},
@@ -92,6 +101,12 @@ export const Joystick: React.FC<JoystickProps> = React.memo(
     const JOYSTICK_RADIUS = size / 6;
     const MAX_DISTANCE = BOUNDARY_RADIUS + JOYSTICK_RADIUS / 2;
 
+    // Pre-compute colors to avoid calling color-alpha inside worklets
+    const boundaryColorActive = withAlpha(color, 0.2);
+    const boundaryColorInactive = color;
+    const backgroundColorBoundary = withAlpha(color, 0.2);
+    const backgroundColorJoystick = withAlpha(color, 0.6);
+
     const debouncedOnMove = useCallback(
       (data: JoystickData) => {
         debounce(() => {
@@ -104,14 +119,13 @@ export const Joystick: React.FC<JoystickProps> = React.memo(
     const panGesture = useMemo(
       () =>
         Gesture.Pan()
+          .runOnJS(true)
           .onBegin(() => {
-            'worklet';
             if (haptics && Haptics) {
-              runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Heavy);
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
             }
           })
           .onUpdate((event: { translationX: any; translationY: any }) => {
-            'worklet';
             const rawX = event.translationX;
             const rawY = event.translationY;
             const distance = Math.sqrt(rawX ** 2 + rawY ** 2);
@@ -136,7 +150,7 @@ export const Joystick: React.FC<JoystickProps> = React.memo(
             const normalizedX = (newX / BOUNDARY_RADIUS) * size;
             const normalizedY = -(newY / BOUNDARY_RADIUS) * size;
 
-            runOnJS(debouncedOnMove)({
+            debouncedOnMove({
               position: {
                 x: Math.max(-size, Math.min(size, normalizedX)),
                 y: Math.max(-size, Math.min(size, normalizedY)),
@@ -155,7 +169,7 @@ export const Joystick: React.FC<JoystickProps> = React.memo(
             translateX.value = withTiming(0, { duration: 300 });
             translateY.value = withTiming(0, { duration: 300 });
             if (onEnd) {
-              runOnJS(onEnd)();
+              onEnd();
             }
           }),
       [
@@ -181,8 +195,8 @@ export const Joystick: React.FC<JoystickProps> = React.memo(
       return {
         borderColor:
           Math.abs(translateX.value) > 0 || Math.abs(translateY.value) > 0
-            ? `${color}33`
-            : color,
+            ? boundaryColorActive
+            : boundaryColorInactive,
       };
     });
 
@@ -198,7 +212,7 @@ export const Joystick: React.FC<JoystickProps> = React.memo(
                 width: size,
                 height: size,
                 borderRadius: BOUNDARY_RADIUS,
-                backgroundColor: `${color}33`,
+                backgroundColor: backgroundColorBoundary,
                 // borderColor: color,
               },
               boundaryStyle, // Applying the animated style here
@@ -213,7 +227,7 @@ export const Joystick: React.FC<JoystickProps> = React.memo(
                   width: JOYSTICK_RADIUS * 2,
                   height: JOYSTICK_RADIUS * 2,
                   borderRadius: JOYSTICK_RADIUS,
-                  backgroundColor: `${color}99`,
+                  backgroundColor: backgroundColorJoystick,
                 },
                 animatedStyle,
               ]}

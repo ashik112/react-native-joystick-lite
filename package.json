@@ -155,5 +155,8 @@
   "eslintIgnore": [
     "node_modules/",
     "lib/"
-  ]
+  ],
+  "dependencies": {
+    "color-alpha": "^2.0.0"
+  }
 }
