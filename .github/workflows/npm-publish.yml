@@ -108,19 +108,30 @@ jobs:
             echo "✅ Version ${{ steps.package.outputs.version }} is new"
           fi
 
-      - name: Publish to npm (manual trigger with version bump)
+      - name: Bump version if needed
         if: github.event_name == 'workflow_dispatch' && steps.check_version.outputs.exists == 'true'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           npm version ${{ github.event.inputs.version_type }} --no-git-tag-version
-          yarn prepare
-          npm publish
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish to npm (direct publish)
-        if: steps.check_version.outputs.exists == 'false'
+      - name: Rebuild after version bump
+        if: github.event_name == 'workflow_dispatch' && steps.check_version.outputs.exists == 'true'
+        run: yarn prepare
+
+      - name: Final version check
+        id: final_check
+        run: |
+          FINAL_VERSION=$(node -p "require('./package.json').version")
+          if npm view ${{ steps.package.outputs.name }}@$FINAL_VERSION &>/dev/null; then
+            echo "❌ Final version $FINAL_VERSION already exists on npm"
+            exit 1
+          else
+            echo "✅ Final version $FINAL_VERSION is ready for publish"
+            echo "final_version=$FINAL_VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish to npm
         run: npm publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

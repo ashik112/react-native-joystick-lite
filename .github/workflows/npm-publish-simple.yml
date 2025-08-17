@@ -54,12 +54,38 @@ jobs:
         id: current_version
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
+      - name: Check if current version exists on npm
+        id: check_current_version
+        run: |
+          CURRENT_VERSION="${{ steps.current_version.outputs.version }}"
+          if npm view react-native-joystick-lite@$CURRENT_VERSION &>/dev/null; then
+            echo "current_exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Current version $CURRENT_VERSION already exists on npm"
+          else
+            echo "current_exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Current version $CURRENT_VERSION is new"
+          fi
+
       - name: Bump version
+        if: steps.check_current_version.outputs.current_exists == 'true'
         run: npm version ${{ github.event.inputs.version_type }} --no-git-tag-version
 
-      - name: Get new version
-        id: new_version
+      - name: Get final version
+        id: final_version
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Check if final version exists on npm
+        id: check_final_version
+        run: |
+          FINAL_VERSION="${{ steps.final_version.outputs.version }}"
+          if npm view react-native-joystick-lite@$FINAL_VERSION &>/dev/null; then
+            echo "final_exists=true" >> $GITHUB_OUTPUT
+            echo "❌ Final version $FINAL_VERSION already exists on npm"
+            exit 1
+          else
+            echo "final_exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Final version $FINAL_VERSION is ready for publish"
+          fi
 
       - name: Build package
         run: yarn prepare
@@ -73,5 +99,5 @@ jobs:
         run: |
           echo "🎉 Package published successfully!"
           echo "📦 Package: $(node -p "require('./package.json').name")"
-          echo "🏷️ Version: ${{ steps.current_version.outputs.version }} → ${{ steps.new_version.outputs.version }}"
+          echo "🏷️ Version: ${{ steps.current_version.outputs.version }} → ${{ steps.final_version.outputs.version }}"
           echo "🔗 npm: https://www.npmjs.com/package/$(node -p "require('./package.json').name")"
