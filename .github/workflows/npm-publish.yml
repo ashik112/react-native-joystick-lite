@@ -1,0 +1,156 @@
+name: Publish to npm
+
+on:
+  # Allows manual triggering from GitHub UI
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+  
+  # Trigger on release creation
+  release:
+    types: [published]
+  
+  # Trigger on version tags
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Lint files
+        run: yarn lint
+
+      - name: Typecheck files
+        run: yarn typecheck
+
+      - name: Run unit tests
+        run: yarn test --maxWorkers=2 --coverage
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Build package
+        run: yarn prepare
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-files
+          path: lib/
+          retention-days: 1
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history for release-it
+          fetch-depth: 0
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-files
+          path: lib/
+
+      - name: Setup npm authentication
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
+      - name: Get package info
+        id: package
+        run: |
+          echo "name=$(node -p "require('./package.json').name")" >> $GITHUB_OUTPUT
+          echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Check if version exists on npm
+        id: check_version
+        run: |
+          if npm view ${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }} &>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Version ${{ steps.package.outputs.version }} already exists on npm"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Version ${{ steps.package.outputs.version }} is new"
+          fi
+
+      - name: Publish to npm (manual trigger with version bump)
+        if: github.event_name == 'workflow_dispatch' && steps.check_version.outputs.exists == 'true'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          npm version ${{ github.event.inputs.version_type }} --no-git-tag-version
+          yarn prepare
+          npm publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to npm (direct publish)
+        if: steps.check_version.outputs.exists == 'false'
+        run: npm publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub release (if triggered manually)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          gh release create "v$NEW_VERSION" \
+            --title "Release v$NEW_VERSION" \
+            --notes "Automated release for version $NEW_VERSION" \
+            --latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post-publish verification
+        run: |
+          echo "🎉 Package published successfully!"
+          echo "📦 Package: ${{ steps.package.outputs.name }}"
+          echo "🏷️ Version: $(node -p "require('./package.json').version")"
+          echo "🔗 npm: https://www.npmjs.com/package/${{ steps.package.outputs.name }}"
+          
+          # Verify the package is available
+          sleep 10
+          npm view ${{ steps.package.outputs.name }} --json | jq '.versions[-1]'
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [publish]
+    if: always()
+    steps:
+      - name: Notify status
+        run: |
+          if [ "${{ needs.publish.result }}" == "success" ]; then
+            echo "✅ Package successfully published to npm!"
+          else
+            echo "❌ Failed to publish package to npm"
+            exit 1
+          fi
