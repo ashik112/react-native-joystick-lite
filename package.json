@@ -156,6 +156,32 @@
     "node_modules/",
     "lib/"
   ],
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release ${version}",
+      "tagName": "v${version}"
+    },
+    "npm": {
+      "publish": true
+    },
+    "github": {
+      "release": true
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": "angular",
+        "infile": "CHANGELOG.md"
+      }
+    },
+    "hooks": {
+      "before:init": [
+        "yarn lint",
+        "yarn typecheck",
+        "yarn test"
+      ],
+      "after:bump": "yarn prepare"
+    }
+  },
   "dependencies": {
     "color-alpha": "^2.0.0"
   }
