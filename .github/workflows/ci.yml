@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main
+      - test-ci-pipeline
+      - 'fix/**'
   pull_request:
     branches:
       - main
