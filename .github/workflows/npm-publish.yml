@@ -23,6 +23,12 @@ on:
     tags:
       - 'v*.*.*'
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  packages: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -119,14 +125,30 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Get updated version
+        id: get_version
+        if: github.event_name == 'workflow_dispatch'
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
       - name: Create GitHub release (if triggered manually)
         if: github.event_name == 'workflow_dispatch'
-        run: |
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          gh release create "v$NEW_VERSION" \
-            --title "Release v$NEW_VERSION" \
-            --notes "Automated release for version $NEW_VERSION" \
-            --latest
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: Release v${{ steps.get_version.outputs.version }}
+          body: |
+            🎉 Automated release for version ${{ steps.get_version.outputs.version }}
+            
+            ## Changes
+            - Version bump to ${{ steps.get_version.outputs.version }}
+            - Published to npm: https://www.npmjs.com/package/${{ steps.package.outputs.name }}
+            
+            ## Installation
+            ```bash
+            npm install ${{ steps.package.outputs.name }}@${{ steps.get_version.outputs.version }}
+            ```
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
